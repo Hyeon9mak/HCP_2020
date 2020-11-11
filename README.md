@@ -1,6 +1,9 @@
 # 광운대학교 컴퓨터정보공학부 2020학년도 2학기 고급C프로그래밍 팀프로젝트
-## 포켓몬 길찾기 게임 (영상)
-- 
+## 포켓몬 길찾기 게임
+- 중간 테스트 [https://youtu.be/N4niAJrYIBI](https://youtu.be/N4niAJrYIBI)
+![pocketmon_game_test_video 2020-11-11 16_08_37](https://user-images.githubusercontent.com/37354145/98782707-d3cc8b00-243b-11eb-8ea4-327b244c64f9.gif)
+
+
 
 ## 팀원
 - 팀장 박정훈 컴퓨터정보공학부 2020202074
