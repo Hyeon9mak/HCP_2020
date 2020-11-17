@@ -67,7 +67,7 @@ void init() {
 			map[i][j].R = 0;
 			map[i][j].connection = NULL;
 			if (!i && !j) {
-				map[i][j].state = 1;//0,0Àº ÇöÀç À§Ä¡·Î ¼³Á¤ 
+				map[i][j].state = 1;//0,0ì€ í˜„ì¬ ìœ„ì¹˜ë¡œ ì„¤ì • 
 			}
 			else {
 				map[i][j].state = 0;
@@ -86,7 +86,11 @@ void init() {
 				map[i][j].direction[0] = -2;
 		}
 	}
+<<<<<<< Updated upstream:source.c
 	/*¿©±âºÎÅÍ ¸Ê ÃÊ±âÈ­ ½ÃÀÛ*/
+=======
+	/*ì—¬ê¸°ë¶€í„° ë§µ ì´ˆê¸°í™” ì‹œì‘*/
+>>>>>>> Stashed changes:ì†ŒìŠ¤ì½”ë“œ/source.c
 	map[6][1].connection = &map[7][9];
 	map[5][3].connection = &map[0][6];
 	map[0][3].R = -3;
@@ -108,6 +112,7 @@ void print() {
 		for (int j = 0; j < size; j++) {
 			if ((i == 6 && j == 1) || (i == 5 && j == 3)) {
 				if (map[i][j].state == 1)
+<<<<<<< Updated upstream:source.c
 					printf("¡Ü ");//ÇöÀç À§Ä¡
 				else
 					printf("¡Ú ");
@@ -127,6 +132,27 @@ void print() {
 					printf("¡à ");//´Ü´ÜÇÑ Áö¿ª
 				else if (map[i][j].R == 3)
 					printf("¡ã ");//¸ñÇ¥ÁöÁ¡
+=======
+					printf("â— ");//í˜„ì¬ ìœ„ì¹˜
+				else
+					printf("â˜… ");
+			}
+			else if ((i == 7 && j == 9) || (i == 0 && j == 6)) {
+				if (map[i][j].state == 1)
+					printf("â— ");//í˜„ì¬ ìœ„ì¹˜
+				else
+					printf("â˜† ");
+			}
+			else {
+				if (map[i][j].state == 1)
+					printf("â— ");//í˜„ì¬ ìœ„ì¹˜
+				else if (map[i][j].R == -3)
+					printf("â–  ");//ê¹¨ì§€ê¸° ì‰¬ìš´ ì§€ì—­
+				else if (map[i][j].R == 0)
+					printf("â–¡ ");//ë‹¨ë‹¨í•œ ì§€ì—­
+				else if (map[i][j].R == 3)
+					printf("â–² ");//ëª©í‘œì§€ì 
+>>>>>>> Stashed changes:ì†ŒìŠ¤ì½”ë“œ/source.c
 			}
 		}
 		printf("\n");
@@ -144,7 +170,11 @@ void sync() {
 	}
 }
 
+<<<<<<< Updated upstream:source.c
 int rand_way(double direction[4]) {// 0º¸´Ù Å©°Å³ª °°Àº Q°ªÀÇ ¹øÈ£¸¦ ¸®ÅÏ
+=======
+int rand_way(double direction[4]) {// 0ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ì€ Qê°’ì˜ ë²ˆí˜¸ë¥¼ ë¦¬í„´
+>>>>>>> Stashed changes:ì†ŒìŠ¤ì½”ë“œ/source.c
 	int ret;
 
 	srand((unsigned)time(NULL));
@@ -187,28 +217,28 @@ void action() {
 		select = rand_way(ptr->direction);
 		//printf("%d\n",select);
 		switch (select) {
-		case 0://¿À¸¥ÂÊ
+		case 0://ì˜¤ë¥¸ìª½
 			if ((ptr + 1)->R != 0)
 				ptr->direction[0] = (ptr + 1)->R;
 			else
 				ptr->direction[0] = DC_RATE * (ptr + 1)->direction[value((ptr + 1)->direction)];
 			ptr = (ptr + 1);
 			break;
-		case 1://¿ŞÂÊ
+		case 1://ì™¼ìª½
 			if ((ptr - 1)->R != 0)
 				ptr->direction[1] = (ptr - 1)->R;
 			else
 				ptr->direction[1] = DC_RATE * (ptr - 1)->direction[value((ptr - 1)->direction)];
 			ptr = (ptr - 1);
 			break;
-		case 2://¾Æ·¡ÂÊ
+		case 2://ì•„ë˜ìª½
 			if ((ptr + size)->R != 0)
 				ptr->direction[2] = (ptr + size)->R;
 			else
 				ptr->direction[2] = DC_RATE * (ptr + size)->direction[value((ptr + size)->direction)];
 			ptr = (ptr + size);
 			break;
-		case 3://À­ÂÊ
+		case 3://ìœ—ìª½
 			if ((ptr - size)->R != 0)
 				ptr->direction[3] = (ptr - size)->R;
 			else
@@ -222,28 +252,28 @@ void action() {
 		select = value(ptr->direction);
 		//printf("%d\n", select);
 		switch (select) {
-		case 0://¿À¸¥ÂÊ
+		case 0://ì˜¤ë¥¸ìª½
 			if ((ptr + 1)->R != 0)
 				ptr->direction[0] = (ptr + 1)->R;
 			else
 				ptr->direction[0] = DC_RATE * (ptr + 1)->direction[value((ptr + 1)->direction)];
 			ptr = (ptr + 1);
 			break;
-		case 1://¿ŞÂÊ
+		case 1://ì™¼ìª½
 			if ((ptr - 1)->R != 0)
 				ptr->direction[1] = (ptr - 1)->R;
 			else
 				ptr->direction[1] = DC_RATE * (ptr - 1)->direction[value((ptr - 1)->direction)];
 			ptr = (ptr - 1);
 			break;
-		case 2://¾Æ·¡ÂÊ
+		case 2://ì•„ë˜ìª½
 			if ((ptr + size)->R != 0)
 				ptr->direction[2] = (ptr + size)->R;
 			else
 				ptr->direction[2] = DC_RATE * (ptr + size)->direction[value((ptr + size)->direction)];
 			ptr = (ptr + size);
 			break;
-		case 3://À­ÂÊ
+		case 3://ìœ—ìª½
 			if ((ptr - size)->R != 0)
 				ptr->direction[3] = (ptr - size)->R;
 			else
