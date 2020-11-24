@@ -15,13 +15,14 @@
 ### 10 x 10 Map
 ![image](/동작영상/1010_45.gif)
 
-{% include youtube.html id="6L8k2tMKGU8" %}
-
-
+[10 x 10 Map 실제 동작 영상 링크](https://youtu.be/ZSPgoS3yVrI)
 
 이 외에도, Map.txt 파일 편집을 통해 자유롭게 맵 구성 가능!
 
-
+### 게임 설명
+![image](/동작영상/before_game)
+![image](/동작영상/in_game)
+![image](/동작영상/after_game)
 
 ## 프로젝트 세부
 ### 팀원
