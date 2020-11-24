@@ -1,24 +1,33 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
+#include<math.h>
 #include<windows.h> 
 
-#define EPSILON 0.3
+#pragma warning(disable:4996)
+
+#define EPSILON 0.1
 #define DC_RATE 0.7
-#define size 10
+#define size_max 100
 #define EPISODE 30000
 
-typedef struct cell{
+typedef struct cell {
 	double R;
 	int state;
+	int color;
+	int connected;
+	int optimized;
 	double direction[4];
 	struct cell* connection;
 }cell;
 
-cell map[size][size];
-cell* ptr = &map[0][0];
+cell map[size_max][size_max];
+cell* ptr = NULL;
+int arr[14][4];
+int size;
 
-void init();
+void init(FILE* Map);
+int Size();
 void print();
 void sync();
 
@@ -30,48 +39,74 @@ int rand_way(double num[4]);
 
 
 int main() {
+	size = Size();
 	cell* current;
+	cell* start;
+
+	FILE* Map;
+
 	current = ptr;
-	init();
+	Map = fopen("Map.txt", "r");
+
+	if (Map == NULL) {
+		printf("initialize map failed\n");
+		return -1;
+	}
+	init(Map);
 	print();
-	for (int i = 0; i < EPISODE; i++) {
-		while (current != &map[size - 1][size - 1]) {
+	current = ptr;
+	start = ptr;
+	for (int i = 0; i < EPISODE+1; i++) {
+		while (current->R != 3) {
 			srand((unsigned)time(NULL));
+			if (i == EPISODE)
+				current->optimized = 1;
 			sync();
 			current->state = 0;
-
 			action();
 			if (ptr->connection != NULL)
 				ptr = ptr->connection;
 			current = ptr;
 			current->state = 1;
+			if (!(i % 1000) && i != 0) {
+				print();
+				//printf("%lf %lf %lf %lf %d\r", current->direction[0], current->direction[1], current->direction[2], current->direction[3], i);
+				Sleep(50);
+			}
+			
 
-			print();
-
-
-			printf("%lf %lf %lf %lf %d", current->direction[0], current->direction[1], current->direction[2], current->direction[3], i);
-
-			Sleep(5);
 		}
 		current->state = 0;
-		ptr = &map[0][0];
+		ptr = start;
 		current = ptr;
 		current->state = 1;
 
 	}
 }
 
-void init() {
+int Size(){
+	int res;
+	FILE* quan = fopen("Map.txt", "r");
+	fseek(quan, 0, SEEK_END);
+	double fileLength = ftell(quan) - 3.0;
+	fclose(quan);
+	fileLength = 2 * fileLength + 4;
+	fileLength = (sqrt(fileLength) * 0.5) - 0.25;
+	res = round(fileLength);
+	return res;
+}
+
+
+
+
+void init(FILE* Map) {
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			map[i][j].R = 0;
 			map[i][j].connection = NULL;
-			if (!i && !j) {
-				map[i][j].state = 1;//0,0ì€ í˜„ìž¬ ìœ„ì¹˜ë¡œ ì„¤ì • 
-			}
-			else {
-				map[i][j].state = 0;
-			}
+			map[i][j].state = 0;
+			map[i][j].optimized = 0;
+			
 		}
 	}
 	for (int i = 0; i < size; i++) {
@@ -86,51 +121,159 @@ void init() {
 				map[i][j].direction[0] = -2;
 		}
 	}
-	/*ì—¬ê¸°ë¶€í„° ë§µ ì´ˆê¸°í™” ì‹œìž‘*/
-	map[6][1].connection = &map[7][9];
-	map[5][3].connection = &map[0][6];
-	map[0][3].R = -3;
-	map[8][5].R = -3;
-	map[4][6].R = -3;
-	map[4][2].R = -3;
-	map[3][0].R = -3;
-	map[7][2].R = -3;
-	map[5][4].R = -3;
-	map[1][7].R = -3;
-	map[2][8].R = -3;
-	map[8][5].R = -3;
-	map[9][9].R = 3;
+	/*¿©±âºÎÅÍ ¸Ê ÃÊ±âÈ­ ½ÃÀÛ*/
+	int cnt = 0;
+	int cur = 0;
+	char tmp;
+	tmp = fgetc(Map);
+	tmp = fgetc(Map);
+	tmp = fgetc(Map);
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			tmp = fgetc(Map);
+			if (tmp != '\n' && tmp != ' ') {
+				if (tmp == 'T') {//T´Â Áö¸§±æ ÀÔ±¸,s´Â Áö¸§±æ Ãâ±¸
+					map[i][j].R = 0;
+					for (int k = 0; k < 2; k++) {
+						arr[cnt][0] = i;
+						arr[cnt][1] = j;
+						arr[cnt][k + 2] = fgetc(Map) - 48;
+					}
+					cnt++;
+				}
+				else if (tmp == 'w')//w ´Â Áö³ª°¡¸é À§ÇèÇÑ °÷
+					map[i][j].R = -3;
+				else if (tmp == 'c')//c ´Â Áö³ª°¡µµ ±¦ÂúÀº °÷
+					map[i][j].R = 0;
+				else if (tmp == 'g')//g ´Â ¸ñÇ¥ ÁöÁ¡
+					map[i][j].R = 3;
+				else if (tmp == 'p') {//p´Â ÇöÀç À§Ä¡
+					if (i + j != 0)
+						cur = 1;
+					map[i][j].R = 0;
+					map[i][j].state = 1;
+					ptr = &map[i][j];
+				}
+				else
+					map[i][j].R = 0;
+			}
+			else
+				j--;
+		}
+	}
+	fclose(Map);
+	int colorInteger = 0;
+	for (int i = 0; i < 14; i++) {
+		if (map[arr[i][0]][arr[i][1]].state != 1) {
+			map[arr[i][0]][arr[i][1]].connection = &map[arr[i][2]][arr[i][3]];
+			map[arr[i][0]][arr[i][1]].connected = 1;
+			map[arr[i][2]][arr[i][3]].connected = 1;
+			map[arr[i][0]][arr[i][1]].color = i + colorInteger;
+			map[arr[i][2]][arr[i][3]].color = i + colorInteger;
+			colorInteger += 1;
+		}
+	}
+	if (cur == 1) {
+		map[0][0].connection = NULL;
+		map[0][0].connected = 0;
+	}
 
 }
 void print() {
-	system("cls");
+	COORD pos = { 0, 0 };
+	CONSOLE_CURSOR_INFO ConsoleCursor;
+	ConsoleCursor.bVisible = 0;
+	ConsoleCursor.dwSize = 1;
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+	SetConsoleCursorInfo(consoleHandle, &ConsoleCursor);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
-			if ((i == 6 && j == 1) || (i == 5 && j == 3)) {
-				if (map[i][j].state == 1)
-					printf("â— ");//í˜„ìž¬ ìœ„ì¹˜
-				else
-					printf("â˜… ");
+			if (map[i][j].optimized != 1) {
+				if (map[i][j].connection != NULL) {
+					if (map[i][j].state == 1)
+						printf("¡Ü ");//ÇöÀç À§Ä¡
+					else {
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (map[i][j].color + 5) / 2);
+						printf("¡Ú ");//Áö¸§±æ ÀÔ±¸ , µé¾î°¡´Â °÷°ú ³ª¿À´Â °÷ ±¸ºÐÀ» À§ÇØ »ö ÁöÁ¤
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+					}
+				}
+				else if (map[i][j].connected != 0) {
+					if (map[i][j].state == 1)
+						printf("¡Ü ");//ÇöÀç À§Ä¡
+					else {
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (map[i][j].color + 5) / 2);
+						printf("¡Ù ");//Áö¸§±æ ÀÔ±¸ , µé¾î°¡´Â °÷°ú ³ª¿À´Â °÷ ±¸ºÐÀ» À§ÇØ »ö ÁöÁ¤
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+					}
+				}
+				else {
+					if (map[i][j].state == 1)
+						printf("¡Ü ");//ÇöÀç À§Ä¡
+					else if (map[i][j].R == -3)
+						printf("¡á ");//±úÁö±â ½¬¿î Áö¿ª
+					else if (map[i][j].R == 0)
+						printf("¡à ");//´Ü´ÜÇÑ Áö¿ª
+					else if (map[i][j].R == 3)
+						printf("¡ã ");//¸ñÇ¥ÁöÁ¡
+				}
 			}
-			else if ((i == 7 && j == 9) || (i == 0 && j == 6)) {
-				if (map[i][j].state == 1)
-					printf("â— ");//í˜„ìž¬ ìœ„ì¹˜
-				else
-					printf("â˜† ");
-			}
-			else {
-				if (map[i][j].state == 1)
-					printf("â— ");//í˜„ìž¬ ìœ„ì¹˜
-				else if (map[i][j].R == -3)
-					printf("â–  ");//ê¹¨ì§€ê¸° ì‰¬ìš´ ì§€ì—­
-				else if (map[i][j].R == 0)
-					printf("â–¡ ");//ë‹¨ë‹¨í•œ ì§€ì—­
-				else if (map[i][j].R == 3)
-					printf("â–² ");//ëª©í‘œì§€ì 
+			else if (map[i][j].optimized == 1) {
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
+				if (map[i][j].connection != NULL) {
+					if (map[i][j].state == 1) {
+						printf("¡Ü ");//ÇöÀç À§Ä¡
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+					else {
+						printf("¡Ú ");//Áö¸§±æ ÀÔ±¸ , µé¾î°¡´Â °÷°ú ³ª¿À´Â °÷ ±¸ºÐÀ» À§ÇØ »ö ÁöÁ¤
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+				}
+				else if (map[i][j].connected != 0) {
+					if (map[i][j].state == 1) {
+						printf("¡Ü");//ÇöÀç À§Ä¡
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+					else {
+						printf("¡Ù");//Áö¸§±æ ÀÔ±¸ , µé¾î°¡´Â °÷°ú ³ª¿À´Â °÷ ±¸ºÐÀ» À§ÇØ »ö ÁöÁ¤
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+				}
+				else {
+					if (map[i][j].state == 1) {
+						printf("¡Ü");//ÇöÀç À§Ä¡
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+					else if (map[i][j].R == -3) {
+						printf("¡á");//±úÁö±â ½¬¿î Áö¿ª
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+					else if (map[i][j].R == 0) {
+						printf("¡à");//´Ü´ÜÇÑ Áö¿ª
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+					else if (map[i][j].R == 3) {
+						printf("¡ã");//¸ñÇ¥ÁöÁ¡
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+						printf(" ");
+					}
+				}
+				
 			}
 		}
 		printf("\n");
 	}
+
 }
 
 void sync() {
@@ -144,7 +287,9 @@ void sync() {
 	}
 }
 
-int rand_way(double direction[4]) {// 0ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ì€ Qê°’ì˜ ë²ˆí˜¸ë¥¼ ë¦¬í„´
+
+
+int rand_way(double direction[4]) {// 0º¸´Ù Å©°Å³ª °°Àº Q °ªÀÇ ¹æÇâÀ» ·£´ýÀ¸·Î ¼±ÅÃ
 	int ret;
 
 	srand((unsigned)time(NULL));
@@ -156,7 +301,7 @@ int rand_way(double direction[4]) {// 0ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ì€ Qê°’ì˜ ë²ˆí˜¸ë¥¼
 	}
 }
 
-int value(double direction[4]) {
+int value(double direction[4]) {//°¡Àå Å« Q °ªÀ» ¼±ÅÃ, Áßº¹ÀÌ ÀÖÀ»°æ¿ì ·£´ýÀ¸·Î ¼±ÅÃ
 	srand((unsigned)time(NULL));
 	int ret;
 	int cnt[4] = { 0, };
@@ -180,40 +325,42 @@ int value(double direction[4]) {
 	}
 }
 
-void action() {
-
-	register int select;
-	if (rand() < EPSILON) {
+void action() {//Çàµ¿ ÇÔ¼ö
+	srand((unsigned)time(NULL));
+	register int select;//¼Óµµ Çâ»óÀ» À§ÇØ ·¹Áö½ºÅÍ º¯¼ö¸¦ »ç¿ë 
+	double n = rand();
+	n /= 32767;//·£´ý°ªÀ» 1~0 À¸·Î »ý¼º
+	if (n < EPSILON) {//·£´ý Çàµ¿ÀÇ È®·ü
 		select = rand_way(ptr->direction);
 		//printf("%d\n",select);
 		switch (select) {
-		case 0://ì˜¤ë¥¸ìª½
+		case 0://¿À¸¥ÂÊ
 			if ((ptr + 1)->R != 0)
 				ptr->direction[0] = (ptr + 1)->R;
 			else
 				ptr->direction[0] = DC_RATE * (ptr + 1)->direction[value((ptr + 1)->direction)];
 			ptr = (ptr + 1);
 			break;
-		case 1://ì™¼ìª½
+		case 1://¿ÞÂÊ
 			if ((ptr - 1)->R != 0)
 				ptr->direction[1] = (ptr - 1)->R;
 			else
 				ptr->direction[1] = DC_RATE * (ptr - 1)->direction[value((ptr - 1)->direction)];
 			ptr = (ptr - 1);
 			break;
-		case 2://ì•„ëž˜ìª½
-			if ((ptr + size)->R != 0)
-				ptr->direction[2] = (ptr + size)->R;
+		case 2://¾Æ·¡ÂÊ
+			if ((ptr + size_max)->R != 0)
+				ptr->direction[2] = (ptr + size_max)->R;
 			else
-				ptr->direction[2] = DC_RATE * (ptr + size)->direction[value((ptr + size)->direction)];
-			ptr = (ptr + size);
+				ptr->direction[2] = DC_RATE * (ptr + size_max)->direction[value((ptr + size_max)->direction)];
+			ptr = (ptr + size_max);
 			break;
-		case 3://ìœ—ìª½
-			if ((ptr - size)->R != 0)
-				ptr->direction[3] = (ptr - size)->R;
+		case 3://À­ÂÊ
+			if ((ptr - size_max)->R != 0)
+				ptr->direction[3] = (ptr - size_max)->R;
 			else
-				ptr->direction[3] = DC_RATE * (ptr - size)->direction[value((ptr - size)->direction)];
-			ptr = (ptr - size);
+				ptr->direction[3] = DC_RATE * (ptr - size_max)->direction[value((ptr - size_max)->direction)];
+			ptr = (ptr - size_max);
 			break;
 		}
 
@@ -222,33 +369,33 @@ void action() {
 		select = value(ptr->direction);
 		//printf("%d\n", select);
 		switch (select) {
-		case 0://ì˜¤ë¥¸ìª½
+		case 0://¿À¸¥ÂÊ
 			if ((ptr + 1)->R != 0)
 				ptr->direction[0] = (ptr + 1)->R;
 			else
 				ptr->direction[0] = DC_RATE * (ptr + 1)->direction[value((ptr + 1)->direction)];
 			ptr = (ptr + 1);
 			break;
-		case 1://ì™¼ìª½
+		case 1://¿ÞÂÊ
 			if ((ptr - 1)->R != 0)
 				ptr->direction[1] = (ptr - 1)->R;
 			else
 				ptr->direction[1] = DC_RATE * (ptr - 1)->direction[value((ptr - 1)->direction)];
 			ptr = (ptr - 1);
 			break;
-		case 2://ì•„ëž˜ìª½
-			if ((ptr + size)->R != 0)
-				ptr->direction[2] = (ptr + size)->R;
+		case 2://¾Æ·¡ÂÊ
+			if ((ptr + size_max)->R != 0)
+				ptr->direction[2] = (ptr + size_max)->R;
 			else
-				ptr->direction[2] = DC_RATE * (ptr + size)->direction[value((ptr + size)->direction)];
-			ptr = (ptr + size);
+				ptr->direction[2] = DC_RATE * (ptr + size_max)->direction[value((ptr + size_max)->direction)];
+			ptr = (ptr + size_max);
 			break;
-		case 3://ìœ—ìª½
-			if ((ptr - size)->R != 0)
-				ptr->direction[3] = (ptr - size)->R;
+		case 3://À­ÂÊ
+			if ((ptr - size_max)->R != 0)
+				ptr->direction[3] = (ptr - size_max)->R;
 			else
-				ptr->direction[3] = DC_RATE * (ptr - size)->direction[value((ptr - size)->direction)];
-			ptr = (ptr - size);
+				ptr->direction[3] = DC_RATE * (ptr - size_max)->direction[value((ptr - size_max)->direction)];
+			ptr = (ptr - size_max);
 			break;
 		}
 	}
