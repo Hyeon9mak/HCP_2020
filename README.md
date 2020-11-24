@@ -1,24 +1,34 @@
 # 광운대학교 컴퓨터정보공학부 2020학년도 2학기 고급C프로그래밍 팀프로젝트
 ## 포켓몬 길찾기 게임
-- 중간 테스트 [https://youtu.be/N4niAJrYIBI](https://youtu.be/N4niAJrYIBI)
-![pocketmon_game_test_video 2020-11-11 16_08_37](https://user-images.githubusercontent.com/37354145/98782707-d3cc8b00-243b-11eb-8ea4-327b244c64f9.gif)
-
-
-
-## 팀원
-- 팀장 박정훈 컴퓨터정보공학부 2020202074
-- 팀원 김현중 컴퓨터정보공학부 2020202041
-- 팀원 최성우 컴퓨터정보공학부 2019202081
-- 팀원 최현구 컴퓨터정보공학부 2015722010
-
-## 프로젝트 개발 과정
-### 포켓몬 길찾기 게임 주제 선정
 ![image](https://user-images.githubusercontent.com/37354145/95642672-fd189500-0ae4-11eb-960d-35753b44e278.png)
 
 - 격자로 이루어진 게임판에 출발지점과 도착지점을 입력하면  
 스스로 최적화된 경로를 찾아내는 강화학습 게임.
 - Frozen lake game 과 포켓몬스터 게임에서  
 아이디어 착안.
+### 4 x 4 Map
+![image](/동작영상/44_45.gif)
+
+### 7 x 7 Map
+![image](/동작영상/77_45.gif)
+
+### 10 x 10 Map
+![image](/동작영상/1010_45.gif)
+
+{% include youtube.html id="6L8k2tMKGU8" %}
+
+
+
+이 외에도, Map.txt 파일 편집을 통해 자유롭게 맵 구성 가능!
+
+
+
+## 프로젝트 세부
+### 팀원
+- 팀장 박정훈 컴퓨터정보공학부 2020202074
+- 팀원 김현중 컴퓨터정보공학부 2020202041
+- 팀원 최성우 컴퓨터정보공학부 2019202081
+- 팀원 최현구 컴퓨터정보공학부 2015722010
 
 ### 주제 선정 과정
 ![image](https://user-images.githubusercontent.com/37354145/95642716-394bf580-0ae5-11eb-8b0f-3c958580a82c.png)
@@ -31,7 +41,7 @@
 ![image](https://user-images.githubusercontent.com/37354145/95642797-d0b14880-0ae5-11eb-96f9-0d538946b2fe.png)
 
 
-### 핵심 자료구조 & 알고리즘
+### 핵심 알고리즘
 - Q-learning
 - E-greedy
 
